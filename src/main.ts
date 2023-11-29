@@ -9,7 +9,7 @@ const root = document.getElementById("app") as HTMLDivElement;
 const options = new Options(root)
 
 const word = new Word(options.length);
-const obj = new Guess(word.wordLength)
+const obj = new Guess(word.wordLength, word.word)
 const view = new View(root)
 const game = new Game(obj, word, view, options);
 options.subscribe("hard", game.startGame);

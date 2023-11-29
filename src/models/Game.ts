@@ -6,19 +6,20 @@ import {Options} from "./Options.js";
 import {autoBind} from "../utils/decorator.ts";
 
 export class Game {
-    public disabledLetters:Set<string> = new Set<string>();
-
     constructor(public guess:Guess, private word:Word, public view:View, private options:Options) {
         this.startGame().then();
     }
     @autoBind
-    async startGame() {
+    async startGame(restart=false) {
         this.guess.resetState()
         this.word.length = this.options.length
         await this.word.getWord();
-        this.guess = new Guess(this.word.length)
-        this.view.renderContainer(this.handleKeyboard, this.handleInput, 5, this.options.length)
-
+        this.guess = new Guess(this.word.length, this.word.word)
+        if(!restart) {
+            this.view.renderContainer( this.handleInput, 5, this.options.length)
+        }else {
+            this.view.resetView()
+        }
     }
 
     @autoBind
@@ -31,7 +32,7 @@ export class Game {
         if(!currWord) return;
         const wordExists = await this.word.wordExists(currWord);
         if(!wordExists) {
-            this.showError();
+            this.showError("Such a word doesn't exist");
             console.log("Such a word doesn't exist");
             return;
         }
@@ -39,7 +40,8 @@ export class Game {
         console.log(this.guess.row)
     }
     handleBackspace() {
-        const cell = this.view.queryCell(this.guess)
+        const cell = this.view.queryCell(this.guess);
+        if(cell.textContent === "" && this.guess.pos === 0) return;
         if(cell.textContent !=="") {
             cell.textContent = ""
         }else {
@@ -48,25 +50,15 @@ export class Game {
 
         }
     }
-    handleKeyboard = ({key}:KeyboardEvent) => {
-        if(this.guess.isError && this.guess.timeOut) {
-            this.hideError();
-
-        }
-        if(this.disabledLetters.has(key.toUpperCase())) {
-            console.log('disabled');
-            return;
-        }
-        this.handleInput(key)
-    }
-
     @autoBind
     hideError() {
         this.guess.removeError();
         this.view.hideError()
     }
-    showError(){
-
+    showError(msg:string){
+        this.guess.isError = true;
+        this.view.showError(msg)
+        this.guess.timeOut = window.setTimeout(this.hideError, 3000)
     }
 
     handleExtraHard(currWord:string) {
@@ -77,28 +69,29 @@ export class Game {
         let newAttemptObj:IRecentAttempt;
         const extraHard = this.options.extraHard;
         const hard = this.options.hard;
-        for(let i =0; i< currWord.length; i++) {
+        for(let i = 0; i < currWord.length; i++) {
             const currLetter = currWord[i];
             const currCorrectLetter = correctWord[i];
             let shouldReturn = false;
             if(this.guess.row > 0 && (extraHard || hard)) {
                 const {letter:prevLetter, limit} = prevAttemptArr[i];
                 if(limit === "correct" && prevLetter !== currLetter) {
-                    console.log(`Letter ${i+1} must be ${prevLetter}`);
+                    this.showError(`Letter ${i+1} must be ${prevLetter}`);
                     return
                 }
                 if(limit==="almost" && currLetter === prevLetter && extraHard) {
-                    console.log(`Letter ${i+1} cannot be ${prevLetter}`);
+                    this.showError(`Letter ${i+1} cannot be ${prevLetter}`);
                     return
                 } else if(limit==="almost" && !currWord.includes(prevLetter) ) {
-                    console.log(`Word must contain ${prevLetter}`);
+                    console.log("almost")
+                    this.showError(`Word must contain ${prevLetter}`);
                     return
                 }
 
                 if(extraHard) {
                     const disabledLetters = prevAttemptArr.find(({letter:bukva, limit:prevLimit})=> (currLetter === bukva) && prevLimit==="disabled" );
                     if(disabledLetters){
-                        console.log(`Word cannot contain ${disabledLetters.letter}`);
+                        this.showError(`Word cannot contain ${disabledLetters.letter}`);
                         return
                     }
                     for (let j = 0; j < prevAttemptsArrays.length; j++) {
@@ -106,7 +99,7 @@ export class Game {
                         attemptArray.forEach(({letter:nestedLetter, limit:nestedLimit}, index)=>{
                             if(nestedLimit==="almost" && nestedLetter === currLetter && index === i) {
                                 console.log(`${nestedLetter}-${currLetter}    ${nestedLimit}-${limit}    ${i}`)
-                                console.log(`Letter ${i+1} cannot be ${nestedLetter}`);
+                                this.showError(`Letter ${i+1} cannot be ${nestedLetter}`);
                                 shouldReturn = true
                                 return
                             }
@@ -145,26 +138,36 @@ export class Game {
                 this.guess.prevAttempts = (newAttemptArr as unknown) as IRecentAttempt[][];
             }
         }
-        this.guess.handleSubmit()
+        const attempt = this.guess.handleSubmit(currWord)
+        if(attempt === true){
+            this.view.showModal(true, this.guess.row, this.word.word, this.getTimeCount(), this.startGame);
+
+        }else if(attempt === false) {
+            this.view.showModal(false, this.guess.row, this.word.word, this.getTimeCount(), this.startGame);
+
+        }
 
     }
-
+    getTimeCount() {
+        const {minutes, seconds} = this.guess.timeCount;
+        const secs = seconds < 10 ? `0${seconds}` : `${seconds}`;
+        const mins = minutes < 10 ? `0${minutes}` : `${minutes}`;
+        return [mins, secs]
+    }
     handleTimeCountUpdate() {
-
         this.guess.interval = setInterval(()=>{
             if(!this.guess.isStarted) return;
-            const {minutes, seconds} = this.guess.timeCount;
-            const secs = seconds < 10 ? `0${seconds}` : seconds;
-            const mins = minutes < 10 ? `0${minutes}` : minutes;
             this.guess.updateTimer();
             if(this.options.showTimer) {
-                this.view.updateTimeCount(`${mins}:${secs}`);
+                this.view.updateTimeCount(this.getTimeCount());
             }
-
         }, 1000)
     }
     @autoBind
     handleInput(key:string) {
+        if(this.guess.isError && this.guess.timeOut) {
+            this.hideError();
+        }
         switch (key) {
             case "Enter" : {
                 console.log(key)

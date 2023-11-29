@@ -86,7 +86,7 @@ export class Options implements IOptions{
             input.checked = this[key];
             console.log(key);
             if(key in this.listeners) {
-                const cb = this.listeners[key]();
+                const cb = this.listeners[key](true);
                 if(cb instanceof Promise) {
                     cb.then()
                 }
@@ -150,7 +150,7 @@ export class Options implements IOptions{
     set length(newLength:number) {
         this.wordLength = newLength;
         this.updateButtons();
-        this.listeners["length"]()
+        this.listeners["length"](false)
     }
     get length() {
         return this.wordLength

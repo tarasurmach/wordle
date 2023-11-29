@@ -11,7 +11,7 @@ export interface IGuess {
     attempts:number,
     wordLength:number,
     isError:boolean,
-    timeOut:Timeout|null,
+    timeOut:number|null,
     timeCount:ICount;
     isStarted:boolean
     recentAttempt:RecentAttempt,
@@ -31,7 +31,7 @@ export interface RecentAttempt  {[Key: number]: { letter:string, limit:"correct"
 export class Guess implements IGuess{
     public row = 0;
     public pos = 0;
-    public timeOut:Timeout | null= null;
+    public timeOut:number | null= null;
     public isError = false;
     public timeCount = defaultTimeCount;
     public isStarted = false;
@@ -42,7 +42,7 @@ export class Guess implements IGuess{
     public attempts= 5;
     public intervalID:Interval|null = null;
 
-    constructor(public wordLength:number ) {
+    constructor(public wordLength:number, private word:string) {
     this.recentAttempt= {}
     this.recentAttempts= []
     }
@@ -55,8 +55,15 @@ export class Guess implements IGuess{
         if(this.pos === 0) return;
         this.pos--;
     }
-    handleSubmit() {
+    handleSubmit(currWord:string) {
         if(this.pos!==this.wordLength - 1) return;
+        if(currWord === this.word) {
+            //this.resetState();
+            return true
+        }
+        if(this.row + 1 === this.attempts) {
+            return false;
+        }
         this.row++;
         this.resetPos()
 
@@ -66,14 +73,15 @@ export class Guess implements IGuess{
     }
     removeError(){
         this.isError = false;
-        if(typeof this.timeOut === "number") {
+        if(this.timeOut !== null) {
             window.clearTimeout(this.timeOut);
+            this.timeOut = null;
         }
-        this.timeOut = null;
+
     }
     setError() {
         this.isError = true;
-        this.resetPos();
+
     }
     updateTimer() {
         console.log("updating")

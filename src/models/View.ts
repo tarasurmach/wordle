@@ -24,13 +24,14 @@ export class View {
         }, div)
 
     }
-    renderContainer(keydownListener,clickListener, attempts, wordLength) {
+
+    renderContainer(clickListener, attempts, wordLength) {
         let str = document.createElement("div");
         str.className = "cont";
         const timeCount = document.createElement("p");
         timeCount.className = "timer";
         timeCount.textContent = "_"
-        str.append(this.initializeBoard(keydownListener, attempts, wordLength), timeCount, this.renderKeyboard(clickListener));
+        str.append(this.initializeBoard(clickListener, attempts, wordLength), timeCount, this.renderKeyboard(clickListener));
         if((this.rootEl.querySelector(".options") as HTMLDivElement).style.display=== "flex") {
             str.style.display = "none"
         }
@@ -62,7 +63,7 @@ export class View {
         const board = document.createElement("div");
         board.classList.add("board");
         board.tabIndex = 0;
-        board.onkeydown = eventListener;
+        board.addEventListener("keydown", ({key}:KeyboardEvent) =>{eventListener(key)});
 
         this.renderRows(attempts, wordLength, board);
         return board
@@ -96,6 +97,30 @@ export class View {
         })
         return keyboard
     }
+    showModal(win:boolean, attempt:number, word:string, [mins, secs]:string[], cb:(restart:boolean)=>Promise<void>) {
+        const modal = document.querySelector(".modal") as HTMLDivElement;
+        const modalContent = modal.firstElementChild as HTMLDivElement;
+        const message = win ? "Congratulations. You won." : "Unfortunately, you're out of guesses";
+        modalContent.innerHTML = `
+        <h3>${word.toUpperCase()}</h3>
+        <div>
+            <p>${message}</p>
+            <p>You've played for: ${mins}:${secs}</p>
+        </div>`;
+        const button = document.createElement("button");
+        button.textContent = "Try again";
+        button.onclick = () =>{
+            cb(true).then()
+        };
+        modalContent.appendChild(button)
+        modal.classList.add("show-modal")
+    }
+    hideModal() {
+        const modal = document.querySelector(".modal") as HTMLDivElement;
+        const modalContent = modal.firstElementChild as HTMLDivElement;
+        modalContent.innerHTML = "";
+        modal.style.display = "none"
+    }
     resetKeyboard():HTMLDivElement {
         console.log(this)
         const keyboard = this.rootEl.querySelector<HTMLDivElement>(".keyboard") as HTMLDivElement;
@@ -115,6 +140,7 @@ export class View {
     resetView() {
         this.resetBoard()
         this.resetKeyboard();
+        this.hideModal()
     }
     renderRows(attempts:number, wordLength:number, board:HTMLDivElement) {
         for(let i = 0; i < attempts; i++) {
@@ -173,10 +199,9 @@ export class View {
         if(!keyEl) return;
         keyEl.className = "key " + classStr
     }
-    updateTimeCount(timeStr:string) {
+    updateTimeCount([mins, secs]:string[]) {
         let timeCount = this.rootEl.querySelector<HTMLParagraphElement>(".timer") as HTMLParagraphElement;
-
-        timeCount.textContent = `You have been guessing for: ${timeStr}`;
+        timeCount.textContent = `You have been guessing for: ${mins}:${secs}`;
 
 
     }
