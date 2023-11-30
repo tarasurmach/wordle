@@ -57,8 +57,8 @@ export class Game {
     }
     showError(msg:string){
         this.guess.isError = true;
+        this.guess.timeOut = window.setTimeout(this.hideError, 1500)
         this.view.showError(msg)
-        this.guess.timeOut = window.setTimeout(this.hideError, 3000)
     }
 
     handleExtraHard(currWord:string) {
@@ -166,11 +166,12 @@ export class Game {
     @autoBind
     handleInput(key:string) {
         if(this.guess.isError && this.guess.timeOut) {
+
             this.hideError();
         }
         switch (key) {
             case "Enter" : {
-                console.log(key)
+                console.log(this.guess)
                 this.handleEnter().then();
                 break;
             }

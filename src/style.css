@@ -158,6 +158,10 @@ button:focus-visible {
   font-family: Arial, Helvetica, sans-serif;
   cursor: pointer;
 }
+.key:hover {
+  opacity: 0.5;
+  transition-duration: 200ms;
+}
 .checkbox {
   position: relative;
   display: inline-block;

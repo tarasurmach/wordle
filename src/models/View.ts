@@ -1,5 +1,4 @@
-
-import {Guess, IGuess} from "./Guess.js";
+import {Guess} from "./Guess.js";
 import {autoBind} from "../utils/decorator.ts";
 
 
@@ -97,16 +96,22 @@ export class View {
         })
         return keyboard
     }
-    showModal(win:boolean, attempt:number, word:string, [mins, secs]:string[], cb:(restart:boolean)=>Promise<void>) {
+    queryModal() {
         const modal = document.querySelector(".modal") as HTMLDivElement;
         const modalContent = modal.firstElementChild as HTMLDivElement;
+        return [modal, modalContent]
+    }
+    showModal(win:boolean, attempt:number, word:string, [mins, secs]:string[], cb:(restart:boolean)=>Promise<void>) {
+        const [modal, modalContent] = this.queryModal()
         const message = win ? "Congratulations. You won." : "Unfortunately, you're out of guesses";
         modalContent.innerHTML = `
         <h3>${word.toUpperCase()}</h3>
         <div>
             <p>${message}</p>
             <p>You've played for: ${mins}:${secs}</p>
-        </div>`;
+        </div>
+        ${win ? `<p>It took you ${attempt} attempts</p>` : ""}
+`;
         const button = document.createElement("button");
         button.textContent = "Try again";
         button.onclick = () =>{
@@ -119,7 +124,7 @@ export class View {
         const modal = document.querySelector(".modal") as HTMLDivElement;
         const modalContent = modal.firstElementChild as HTMLDivElement;
         modalContent.innerHTML = "";
-        modal.style.display = "none"
+        modal.classList.remove("show-modal")
     }
     resetKeyboard():HTMLDivElement {
         console.log(this)
@@ -185,13 +190,15 @@ export class View {
         const small = document.createElement("small");
         small.className = "error";
         small.textContent = msg;
-        (document.querySelector("#app") as HTMLDivElement).prepend(small);
+        const [modal, modalContent] = this.queryModal();
+        modalContent.innerHTML = `<small class="error">${msg}</small>`
+        modal.classList.add("show-modal");
+
     }
     hideError() {
-        const err = document.querySelector(".error");
-        if(err) {
-            err.remove()
-        }
+        const [modal, modalContent] = this.queryModal();
+        modalContent.innerHTML = "";
+        modal.classList.remove("show-modal")
     }
     updateClassname(classStr:string, node:HTMLDivElement) {
         node.className = "cell " + classStr;
