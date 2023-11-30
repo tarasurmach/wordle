@@ -28,6 +28,13 @@ export class Options implements IOptions{
     renderElement(root:HTMLDivElement) {
         const optionsCont = document.createElement("div");
         const toggleBtn = document.createElement<"button">("button");
+        toggleBtn.innerHTML = 'Options <span>&#128736;</span>';
+        const headerDiv= document.createElement("div");
+        headerDiv.className = "header-div"
+        headerDiv.innerHTML = `<h2>Wordle</h2>`
+        headerDiv.appendChild(toggleBtn)
+
+
         toggleBtn.addEventListener("click", () => {
             const board = root.lastElementChild as HTMLDivElement;
             if(optionsCont.style.display === "flex") {
@@ -45,7 +52,7 @@ export class Options implements IOptions{
             optionsCont.appendChild(this.renderOption(key))
 
         }
-        root.append(toggleBtn, optionsCont);
+        root.append(headerDiv, optionsCont);
 
     }
 

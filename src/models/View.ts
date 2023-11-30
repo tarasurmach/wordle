@@ -191,14 +191,19 @@ export class View {
         small.className = "error";
         small.textContent = msg;
         const [modal, modalContent] = this.queryModal();
-        modalContent.innerHTML = `<small class="error">${msg}</small>`
-        modal.classList.add("show-modal");
+        const popup = document.querySelector(".popup") as HTMLDivElement;
+        const popupContent = popup.firstElementChild as HTMLDivElement;
+        popupContent.innerHTML = `<p >${msg}</p>`;
+        popup.style.display = "block";
+        //modalContent.innerHTML = `<small class="error">${msg}</small>`
+        //modal.classList.add("show-modal");
 
     }
     hideError() {
-        const [modal, modalContent] = this.queryModal();
-        modalContent.innerHTML = "";
-        modal.classList.remove("show-modal")
+        const popup = document.querySelector(".popup") as HTMLDivElement;
+        const popupContent = popup.firstElementChild as HTMLDivElement;
+        popupContent.innerHTML = '';
+        popup.style.display = "none";
     }
     updateClassname(classStr:string, node:HTMLDivElement) {
         node.className = "cell " + classStr;
