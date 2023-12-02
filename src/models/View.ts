@@ -1,4 +1,4 @@
-import {Guess} from "./Guess.js";
+import {Model} from "./Model.ts";
 import {autoBind} from "../utils/decorator.ts";
 
 
@@ -164,17 +164,17 @@ export class View {
             divEl.appendChild(cellEl)
         }
     }
-    changeTextContent(key, guess:Guess) {
+    changeTextContent(key, guess:Model) {
         const cell = this.queryCell(guess);
         if(!(cell instanceof HTMLDivElement)) return;
         cell.textContent = key.toUpperCase();
     }
-    queryCell({row, pos}:Guess):HTMLDivElement {
+    queryCell({row, pos}:Model):HTMLDivElement {
         const rowEl = document.querySelector(`[data-row="${row}"]`) as HTMLDivElement;
         return rowEl.querySelector(`[data-pos="${pos}"]`) as HTMLDivElement;
 
     }
-    readCurrentRow({row, pos, wordLength}:Guess) {
+    readCurrentRow({row, pos, wordLength}:Model) {
         if(pos !== wordLength - 1) return;
         const cells = this.queryCells(row)
         if(cells[pos].textContent === "") return;

@@ -1,4 +1,4 @@
-export interface IOptions {
+export interface ISettings {
     hard:boolean,
     extraHard:boolean,
     showTimer:boolean,
@@ -14,7 +14,7 @@ const propertyDescriptions = {
     showTimer:"Turn on to show the timer in the game",
     invertedKeys:"Swap backspace and enter"
 }
-export class Options implements IOptions{
+export class Settings implements ISettings{
     public hard = false;
     public showTimer = false;
     public extraHard = true;
@@ -28,7 +28,7 @@ export class Options implements IOptions{
     renderElement(root:HTMLDivElement) {
         const optionsCont = document.createElement("div");
         const toggleBtn = document.createElement<"button">("button");
-        toggleBtn.innerHTML = 'Options <span>&#128736;</span>';
+        toggleBtn.innerHTML = 'Settings <span>&#128736;</span>';
         const headerDiv= document.createElement("div");
         headerDiv.className = "header-div"
         headerDiv.innerHTML = `<h2>Wordle</h2>`

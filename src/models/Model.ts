@@ -5,7 +5,7 @@ const defaultTimeCount:ICount = {
     minutes:0,
     seconds:0
 }
-export interface IGuess {
+export interface IModel {
     row:number,
     pos:number,
     attempts:number,
@@ -19,7 +19,7 @@ export interface IGuess {
     recentAttemptArr:IRecentAttempt[]
     previousAttemptsArrays:IRecentAttempt[][]
 }
-export type Timeout = ReturnType<typeof setTimeout>;
+
 export type Interval = ReturnType<typeof setInterval>;
 
 export type IRecentAttempt =  {
@@ -28,7 +28,7 @@ export type IRecentAttempt =  {
 }
 export type RecentAttempts<Key extends keyof RecentAttempt = number> = RecentAttempt[Key][]
 export interface RecentAttempt  {[Key: number]: { letter:string, limit:"correct"|"almost"|"disabled" }}
-export class Guess implements IGuess{
+export class Model implements IModel{
     public row = 0;
     public pos = 0;
     public timeOut:number | null= null;
@@ -77,10 +77,6 @@ export class Guess implements IGuess{
             window.clearTimeout(this.timeOut);
             this.timeOut = null;
         }
-
-    }
-    setError() {
-        this.isError = true;
 
     }
     updateTimer() {

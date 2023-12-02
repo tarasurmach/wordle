@@ -12,7 +12,7 @@ The goal of this project was to widen and deepen hands-on experience with vanill
 - Word validation is achieved through sending an HTTP request to external words API. In case attempted word is not valid(doesn't exist), corresponding feedback will be provided to user by UI.
     Otherwise, game board and keyboard elements will be updated according to correctness of a guess.
 
-- ### Additional game options
+- ### Additional game settings
 - User can swap backspace and enter keys, change the length of the hidden word, whether to show or not current guess duration(stopwatch) and contrast level of the UI elements(keys and letters). He can also choose to play on hard/extra hard modes.
 
 - ### Advanced difficulty levels
@@ -25,7 +25,7 @@ The goal of this project was to widen and deepen hands-on experience with vanill
 - Settings from hard mode + Revealed letters must be moved away from previous positions and gray clues must be obeyed(letters not present in word cannot be used)
 
 - ### Observer pattern utilization
-- The Observer Pattern is extensively employed in managing the state of game options. The `options` object serves as the subject, and various components(View, Presenter) act as observers, responding to changes in specific options.
+- The Observer Pattern is extensively employed in managing the state of game settings. The `settings` object serves as the subject, and various components(View, Presenter) act as observers, responding to changes in settings.
 - The project leverages the Observer Pattern to establish a flexible and responsive communication mechanism between different components, ensuring fluid synchronization when specific states are altered.
 
 - ## Project structure
@@ -45,8 +45,8 @@ The goal of this project was to widen and deepen hands-on experience with vanill
 - #### Additional models implemented:
 - **Word**
 - This model is intended to encapsulate logic related to word generation and validation through communication with external API.
-- **Options**
-- Options model handles options-specific functionality(rendering UI elements and managing options state)
+- **Settings**
+- Settings model handles settings-specific functionality(rendering UI elements and managing settings state)
 
 
 

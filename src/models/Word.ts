@@ -2,7 +2,7 @@
 const options = {
     method: 'GET',
     headers: {
-        'X-RapidAPI-Key': 'd9d439668bmsh9660438154af55cp122d9bjsne6873780241a',
+        'X-RapidAPI-Key': import.meta.env.VITE_RAPID_KEY,
         'X-RapidAPI-Host': 'wordsapiv1.p.rapidapi.com'
     }
 };
@@ -14,6 +14,7 @@ export class Word {
         this.wordLength = wordLength
     }
     async getWord() {
+        console.log(import.meta.env)
         const response = await fetch(`https://random-word-api.herokuapp.com/word?length=${this.wordLength}`);
         if(!response.ok) throw new Error("Unable to fetch word")
         const [word]:string = await response.json();

@@ -1,20 +1,20 @@
-import {Guess, IRecentAttempt} from "./Guess.js";
+import {Model, IRecentAttempt} from "./Model.js";
 
 import {Word} from "./Word.js";
 import {View} from "./View.js";
-import {Options} from "./Options.js";
+import {Settings} from "./Options.js";
 import {autoBind} from "../utils/decorator.ts";
 
-export class Game {
-    constructor(public guess:Guess, private word:Word, public view:View, private options:Options) {
+export class Presenter {
+    constructor(public model:Model, private word:Word, public view:View, private options:Settings) {
         this.startGame().then();
     }
     @autoBind
     async startGame(restart=false) {
-        this.guess.resetState()
+        this.model.resetState()
         this.word.length = this.options.length
         await this.word.getWord();
-        this.guess = new Guess(this.word.length, this.word.word)
+        this.model = new Model(this.word.length, this.word.word)
         if(!restart) {
             this.view.renderContainer( this.handleInput, 5, this.options.length)
         }else {
@@ -24,11 +24,11 @@ export class Game {
 
     @autoBind
     handleLetterInput(key:string) {
-        this.view.changeTextContent(key, this.guess)
-        this.guess.handleLetterInput();
+        this.view.changeTextContent(key, this.model)
+        this.model.handleLetterInput();
     }
     async handleEnter() {
-        const currWord = this.view.readCurrentRow(this.guess)
+        const currWord = this.view.readCurrentRow(this.model)
         if(!currWord) return;
         const wordExists = await this.word.wordExists(currWord);
         if(!wordExists) {
@@ -37,33 +37,33 @@ export class Game {
             return;
         }
         this.handleExtraHard(currWord)
-        console.log(this.guess.row)
+        console.log(this.model.row)
     }
     handleBackspace() {
-        const cell = this.view.queryCell(this.guess);
-        if(cell.textContent === "" && this.guess.pos === 0) return;
+        const cell = this.view.queryCell(this.model);
+        if(cell.textContent === "" && this.model.pos === 0) return;
         if(cell.textContent !=="") {
             cell.textContent = ""
         }else {
-            this.guess.handleDelete();
-            this.view.queryCell(this.guess).textContent = ""
+            this.model.handleDelete();
+            this.view.queryCell(this.model).textContent = ""
 
         }
     }
     @autoBind
     hideError() {
-        this.guess.removeError();
+        this.model.removeError();
         this.view.hideError()
     }
     showError(msg:string){
-        this.guess.isError = true;
-        this.guess.timeOut = window.setTimeout(this.hideError, 2000)
+        this.model.isError = true;
+        this.model.timeOut = window.setTimeout(this.hideError, 2000)
         this.view.showError(msg)
     }
 
     handleExtraHard(currWord:string) {
-        const prevAttemptsArrays = this.guess.prevAttempts
-        const prevAttemptArr = this.guess.attemptArr;
+        const prevAttemptsArrays = this.model.prevAttempts
+        const prevAttemptArr = this.model.attemptArr;
         const newAttemptArr:IRecentAttempt[] = [];
         const correctWord = this.word.wordLetters;
         let newAttemptObj:IRecentAttempt;
@@ -73,7 +73,7 @@ export class Game {
             const currLetter = currWord[i];
             const currCorrectLetter = correctWord[i];
             let shouldReturn = false;
-            if(this.guess.row > 0 && (extraHard || hard)) {
+            if(this.model.row > 0 && (extraHard || hard)) {
                 const {letter:prevLetter, limit} = prevAttemptArr[i];
                 if(limit === "correct" && prevLetter !== currLetter) {
                     this.showError(`Letter ${i+1} must be ${prevLetter}`);
@@ -125,36 +125,36 @@ export class Game {
             newAttemptArr.push(newAttemptObj)
             }
 
-        const cells = this.view.queryCells(this.guess.row);
+        const cells = this.view.queryCells(this.model.row);
         cells.forEach((cell, index)=>{
             this.view.updateClassname(newAttemptArr[index].limit, cell)
         })
         if(hard || extraHard) {
-            this.guess.attemptArr = newAttemptArr;
+            this.model.attemptArr = newAttemptArr;
             if(extraHard) {
-                this.guess.prevAttempts = (newAttemptArr as unknown) as IRecentAttempt[][];
+                this.model.prevAttempts = (newAttemptArr as unknown) as IRecentAttempt[][];
             }
         }
-        const attempt = this.guess.handleSubmit(currWord)
+        const attempt = this.model.handleSubmit(currWord)
         if(attempt === true){
-            this.view.showModal(true, this.guess.row, this.word.word, this.getTimeCount(), this.startGame);
+            this.view.showModal(true, this.model.row, this.word.word, this.getTimeCount(), this.startGame);
 
         }else if(attempt === false) {
-            this.view.showModal(false, this.guess.row, this.word.word, this.getTimeCount(), this.startGame);
+            this.view.showModal(false, this.model.row, this.word.word, this.getTimeCount(), this.startGame);
 
         }
 
     }
     getTimeCount() {
-        const {minutes, seconds} = this.guess.timeCount;
+        const {minutes, seconds} = this.model.timeCount;
         const secs = seconds < 10 ? `0${seconds}` : `${seconds}`;
         const mins = minutes < 10 ? `0${minutes}` : `${minutes}`;
         return [mins, secs]
     }
     handleTimeCountUpdate() {
-        this.guess.interval = setInterval(()=>{
-            if(!this.guess.isStarted) return;
-            this.guess.updateTimer();
+        this.model.interval = setInterval(()=>{
+            if(!this.model.isStarted) return;
+            this.model.updateTimer();
             if(this.options.showTimer) {
                 this.view.updateTimeCount(this.getTimeCount());
             }
@@ -162,12 +162,12 @@ export class Game {
     }
     @autoBind
     handleInput(key:string) {
-        if(this.guess.isError && this.guess.timeOut) {
+        if(this.model.isError && this.model.timeOut) {
             this.hideError();
         }
         switch (key) {
             case "Enter" : {
-                console.log(this.guess)
+                console.log(this.model)
                 this.handleEnter().then();
                 break;
             }
@@ -178,8 +178,8 @@ export class Game {
             default: {
                 if(!(/^[a-zA-Z]$/.test(key))) return;
                 this.handleLetterInput(key);
-                if(!this.guess.isStarted) {
-                    this.guess.isStarted = true
+                if(!this.model.isStarted) {
+                    this.model.isStarted = true
                     this.handleTimeCountUpdate()
                 }
             }
